@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cipher Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        label {
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #output {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            min-height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Cipher Tool</h2>
+        
+        <div class="section">
+            <h3>Select Cipher Type:</h3>
+            <label>
+                <input type="radio" name="cipher" value="caesar" checked> Caesar Cipher
+            </label>
+            <label>
+                <input type="radio" name="cipher" value="hill"> Hill Cipher
+            </label>
+        </div>
+
+        <div class="section">
+            <h3>Select Operation:</h3>
+            <label>
+                <input type="radio" name="operation" value="encrypt" checked> Encrypt
+            </label>
+            <label>
+                <input type="radio" name="operation" value="decrypt"> Decrypt
+            </label>
+        </div>
+
+        <div class="section">
+            <label for="textInput">Enter Text:</label>
+            <input type="text" id="textInput" placeholder="Enter text to encrypt or decrypt">
+        </div>
+
+        <button onclick="processText()">Process</button>
+
+        <div id="output"></div>
+    </div>
+
+    <script>
+        const key = [[2,1], [5,1]];
+
+        function processText() {
+            const cipher = document.querySelector('input[name="cipher"]:checked').value;
+            const operation = document.querySelector('input[name="operation"]:checked').value;
+            const text = document.getElementById("textInput").value;
+
+            let result = "";
+
+            if (cipher === "caesar") {
+                const shift = 3;
+                result = caesarProcess(text, shift, operation);
+            } else {
+                result = hillProcess(text, key, operation);
+            }
+
+            document.getElementById("output").innerText = result;
+        }
+
+
+        // Caesar Cipher
+        function caesarProcess(text, shift, operation) {
+            const key = operation === "encrypt" ? shift : -shift;
+            let result = "";
+
+            for (let char of text) {
+                if (char.match(/[a-z]/i)) {
+                    const isLower = char === char.toLowerCase();
+                    let charCode = char.toUpperCase().charCodeAt(0) - 65;
+                    charCode = (charCode + key + 26 * 10) % 26;
+                    result += String.fromCharCode(charCode + 65) + (isLower ? "" : "");
+                    if (isLower) result = result.slice(0, -1) + result.slice(-1).toLowerCase();
+                } else {
+                    result += char;
+                }
+            }
+            return `${operation === "encrypt" ? "Encrypted" : "Decrypted"}: ${result}`;
+        }
+
+        // Hill Cipher
+        function hillProcess(text, key, operation) {
+            if (operation === "encrypt") {
+                return hillEncrypt(text, key);
+            } else {
+                return hillDecrypt(text, key);
+            }
+        }
+
+        function hillEncrypt(text, key) {
+            let plaintext = text.toUpperCase();
+
+            if (plaintext.length % 2 !== 0) {
+                plaintext += "X";
+            }
+
+            let result = "";
+
+            for (let i = 0; i < plaintext.length; i += 2) {
+                let p1 = plaintext.charCodeAt(i) - 65;
+                let p2 = plaintext.charCodeAt(i + 1) - 65;
+
+                let c1 = (key[0][0] * p1 + key[0][1] * p2) % 26;
+                let c2 = (key[1][0] * p1 + key[1][1] * p2) % 26;
+
+                result += String.fromCharCode(c1 + 65);
+                result += String.fromCharCode(c2 + 65);
+            }
+
+            return `Encrypted: ${result}`;
+        }
+
+        function hillDecrypt(text, key) {
+            let ciphertext = text.toUpperCase();
+            let result = "";
+
+            // Step 1: Determinant
+            let det = (key[0][0] * key[1][1]) - (key[0][1] * key[1][0]);
+            det = ((det % 26) + 26) % 26;
+
+            // Step 2: Modular inverse of determinant
+            let invDet = 0;
+            for (let i = 1; i < 26; i++) {
+                if ((det * i) % 26 === 1) {
+                    invDet = i;
+                    break;
+                }
+            }
+
+            if (invDet === 0) {
+                return "Error: No inverse exists for this key!";
+            }
+
+            // Step 3: Adjugate matrix
+            let adj = [
+                [key[1][1], -key[0][1]],
+                [-key[1][0], key[0][0]]
+            ];
+
+            // Step 4: Fix negatives (mod 26)
+            adj = adj.map(row => row.map(val => ((val % 26) + 26) % 26));
+
+            // Step 5: Inverse key matrix
+            let inverseKey = adj.map(row =>
+                row.map(val => (val * invDet) % 26)
+            );
+
+            // Step 6: Decrypt text in pairs
+            for (let i = 0; i < ciphertext.length; i += 2) {
+                let p1 = ciphertext.charCodeAt(i) - 65;
+                let p2 = (i + 1 < ciphertext.length) ? ciphertext.charCodeAt(i + 1) - 65 : 0;
+
+                let c1 = (inverseKey[0][0] * p1 + inverseKey[0][1] * p2) % 26;
+                let c2 = (inverseKey[1][0] * p1 + inverseKey[1][1] * p2) % 26;
+
+                c1 = (c1 + 26) % 26;
+                c2 = (c2 + 26) % 26;
+
+                result += String.fromCharCode(c1 + 65);
+                result += String.fromCharCode(c2 + 65);
+            }
+
+            return `Decrypted: ${result}`;
+        }
+    </script>
+</body>
+</html>
