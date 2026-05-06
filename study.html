@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Execution Flow & Definitions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        nav {
+            background: #f5f5f5;
+            padding: 15px 30px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #ddd;
+            overflow-x: auto;
+        }
+
+        nav button {
+            padding: 8px 16px;
+            border: none;
+            background: #667eea;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.95em;
+            white-space: nowrap;
+            transition: 0.3s;
+        }
+
+        nav button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        nav button.active {
+            background: #764ba2;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .content {
+            padding: 30px;
+            display: none;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h3 {
+            color: #764ba2;
+            font-size: 1.3em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        .flow-step {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .flow-step.highlight {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe5a1 100%);
+            border-left-color: #ff8c00;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            font-weight: bold;
+            margin-right: 12px;
+            font-size: 1.1em;
+        }
+
+        .flow-step.highlight .step-number {
+            background: #ff8c00;
+        }
+
+        .step-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            line-height: 1.6;
+            border-left: 4px solid #667eea;
+        }
+
+        .code-line {
+            display: flex;
+            margin: 8px 0;
+        }
+
+        .line-number {
+            color: #6a737d;
+            margin-right: 15px;
+            min-width: 30px;
+            text-align: right;
+            font-size: 0.9em;
+        }
+
+        .line-code {
+            flex: 1;
+            color: #abb2bf;
+        }
+
+        .annotation {
+            background: #e3f2fd;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+            font-size: 0.95em;
+            line-height: 1.7;
+        }
+
+        .annotation strong {
+            color: #667eea;
+        }
+
+        .method-def {
+            background: #fff9e6;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 5px solid #ffc107;
+        }
+
+        .method-def h4 {
+            color: #ff8c00;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+
+        .method-syntax {
+            background: #f5f5f5;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .method-example {
+            background: #f0f4ff;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        footer {
+            background: #f5f5f5;
+            padding: 20px 30px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Code Execution Flow & JavaScript Methods</h1>
+            <p>Step-by-step walkthrough of how the cipher code executes</p>
+        </header>
+
+        <nav>
+            <button class="active" onclick="showSection('flow')">Execution Flow</button>
+            <button onclick="showSection('definitions')">JavaScript Methods</button>
+            <button onclick="showSection('caesar-detailed')">Caesar Detailed</button>
+               <button onclick="showSection('hill-detailed')">Hill Detailed</button>
+        </nav>
+
+        <!-- EXECUTION FLOW SECTION -->
+        <div id="flow" class="content active">
+            <h2>📊 Complete Execution Flow</h2>
+
+            <div class="flow-step highlight">
+                <div class="step-title">
+                    <span class="step-number">1</span>
+                    USER CLICKS THE BUTTON
+                </div>
+                <div class="code-block">
+                    <div class="code-line">
+                        <span class="line-code">&lt;button onclick="processText()"&gt;Process&lt;/button&gt;</span>
+                    </div>
+                </div>
+                <div class="annotation">
+                    <strong>What happens:</strong> When user clicks "Process" button, the processText() function is automatically called.
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-title">
+                    <span class="step-number">2</span>
+                    DECLARE AND GET VALUES
+                </div>
+                <div class="code-block">
+                    <div class="code-line">
+                        <span class="line-number">1</span>
+                        <span class="line-code">const cipher = document.querySelector('input[name="cipher"]:checked').value;</span>
+                    </div>
+                    <div class="code-line">
+                        <span class="line-number">2</span>
+                        <span class="line-code">const operation = document.querySelector('input[name="operation"]:checked').value;</span>
+                    </div>
+                    <div class="code-line">
+                        <span class="line-number">3</span>
+                        <span class="line-code">const text = document.getElementById("textInput").value;</span>
+                    </div>
+                </div>
+                <div class="annotation">
+                    <strong>Line 1:</strong> Gets which radio button is selected for cipher type (caesar or hill)<br>
+                    <strong>Line 2:</strong> Gets which radio button is selected for operation (encrypt or decrypt)<br>
+                    <strong>Line 3:</strong> Gets the text typed in the input field
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-title">
+                    <span class="step-number">3</span>
+                    CREATE RESULT VARIABLE
+                </div>
+                <div class="code-block">
+                    <div class="code-line">
+                        <span class="line-number">4</span>
+                        <span class="line-code">let result = "";</span>
+                    </div>
+                </div>
+                <div class="annotation">
+                    <strong>What happens:</strong> Empty variable created to store the encrypted/decrypted result. We use "let" instead of "const" because we will change its value later.
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-title">
+                    <span class="step-number">4</span>
+                    CHECK WHICH CIPHER WAS SELECTED
+                </div>
+                <div class="code-block">
+                    <div class="code-line">
+                        <span class="line-number">5</span>
+                        <span class="line-code">if (cipher === "caesar") {</span>
+                    </div>
+                    <div class="code-line">
+                        <span class="line-number">6</span>
+                        <span class="line-code">&nbsp;&nbsp;&nbsp;&nbsp;const shift = 3;</span>
+                    </div>
+                    <div class="code-line">
+                        <span class="line-number">7</span>
+                        <span class="line-code">&nbsp;&nbsp;&nbsp;&nbsp;result = caesarProcess(text, shift, operation);</span>
+                    </div>
+                    <div class="code-line">
+                        <span class="line-number">8</span>
+                        <span class="line-code">} else {</span>
+                    </div>
+                    <div class="code-line">
+                        <span class="line-number">9</span>
+                        <span class="line-code">&nbsp;&nbsp;&nbsp;&nbsp;result = hillProcess(text, key, operation);</span>
+                    </div>
+                    <div class="code-line">
+                        <span class="line-number">10</span>
+                        <span class="line-code">}</span>
+                    </div>
+                </div>
+                <div class="annotation">
+                    <strong>Line 5:</strong> If user selected Caesar Cipher<br>
+                    <strong>Line 6:</strong> Create shift value of 3<br>
+                    <strong>Line 7:</strong> Call caesarProcess() with the text, shift, and operation - assign returned value to result<br><br>
+                    <strong>Line 8-9:</strong> If user selected Hill Cipher - call hillProcess() function and assign result
+                </div>
+            </div>
+
+            <div class="flow-step highlight">
+                <div class="step-title">
+                    <span class="step-number">5</span>
+                    DISPLAY THE RESULT
+                </div>
+                <div class="code-block">
+                    <div class="code-line">
+                        <span class="line-number">11</span>
+                        <span class="line-code">document.getElementById("output").innerText = result;</span>
+                    </div>
+                </div>
+                <div class="annotation">
+                    <strong>What happens:</strong> The result is displayed in the output div on the page for the user to see.
+                </div>
+            </div>
+
+            <h3>📌 Example Walkthrough - Caesar</h3>
+            <div class="success">
+                <strong>User Actions:</strong><br>
+                1. Selects "Caesar Cipher"<br>
+                2. Selects "Encrypt"<br>
+                3. Types "hello"<br>
+                4. Clicks "Process"<br><br>
+                <strong>Code Execution:</strong><br>
+                • cipher = "caesar"<br>
+                • operation = "encrypt"<br>
+                • text = "hello"<br>
+                • result = "" (empty)<br>
+                • if condition is TRUE → caesarProcess("hello", 3, "encrypt")<br>
+                • Returns: "Encrypted: KHOOR"<br>
+                • Display: "Encrypted: KHOOR"
+            </div>
+        </div>
+
+        <!-- JAVASCRIPT METHODS SECTION -->
+        <div id="definitions" class="content">
+            <h2>📚 JavaScript Methods & Properties</h2>
+
+            <div class="method-def">
+                <h4>charCodeAt() - Get ASCII Code of Character</h4>
+                <div class="method-syntax">
+                    string.charCodeAt(index)
+                </div>
+                <div class="annotation">
+                    <strong>Purpose:</strong> Returns the ASCII (numeric) code of the character at a specific position<br>
+                    <strong>Parameters:</strong> index = position (0 = first character)
+                </div>
+                <div class="method-example">
+                    "A".charCodeAt(0) → 65<br>
+                    "B".charCodeAt(0) → 66<br>
+                    "hello".charCodeAt(0) → 104 (for 'h')<br>
+                    "hello".charCodeAt(1) → 101 (for 'e')
+                </div>
+                <div class="annotation">
+                    <strong>Used in code:</strong> char.toUpperCase().charCodeAt(0) - 65<br>
+                    Converts A-Z to 0-25 (A=0, B=1, ... Z=25)
+                </div>
+            </div>
+
+            <div class="method-def">
+                <h4>String.fromCharCode() - Convert ASCII to Character</h4>
+                <div class="method-syntax">
+                    String.fromCharCode(code1, code2, ...)
+                </div>
+                <div class="annotation">
+                    <strong>Purpose:</strong> Converts ASCII numbers back into characters (opposite of charCodeAt)
+                </div>
+                <div class="method-example">
+                    String.fromCharCode(65) → "A"<br>
+                    String.fromCharCode(68) → "D"<br>
+                    String.fromCharCode(65, 66, 67) → "ABC"
+                </div>
+                <div class="annotation">
+                    <strong>Used in code:</strong> String.fromCharCode(charCode + 65)<br>
+                    Converts 0-25 back to A-Z letters
+                </div>
+            </div>
+
+            <div class="method-def">
+                <h4>toLowerCase() - Convert to Lowercase</h4>
+                <div class="method-syntax">
+                    string.toLowerCase()
+                </div>
+                <div class="annotation">
+                    <strong>Purpose:</strong> Converts all uppercase letters to lowercase
+                </div>
+                <div class="method-example">
+                    "HELLO".toLowerCase() → "hello"<br>
+                    "Hello World".toLowerCase() → "hello world"
+                </div>
+                <div class="annotation">
+                    <strong>Used in code:</strong> To preserve original case after encryption
+                </div>
+            </div>
+
+            <div class="method-def">
+                <h4>toUpperCase() - Convert to Uppercase</h4>
+                <div class="method-syntax">
+                    string.toUpperCase()
+                </div>
+                <div class="annotation">
+                    <strong>Purpose:</strong> Converts all lowercase letters to uppercase
+                </div>
+                <div class="method-example">
+                    "hello".toUpperCase() → "HELLO"<br>
+                    "Hello World".toUpperCase() → "HELLO WORLD"
+                </div>
+                <div class="annotation">
+                    <strong>Used in code:</strong> text.toUpperCase() before encryption (Caesar & Hill use A-Z only)
+                </div>
+            </div>
+
+            <div class="method-def">
+                <h4>slice() - Extract Part of String</h4>
+                <div class="method-syntax">
+                    string.slice(start, end)
+                </div>
+                <div class="annotation">
+                    <strong>Purpose:</strong> Extracts a section of a string<br>
+                    <strong>Parameters:</strong><br>
+                    • start = starting position<br>
+                    • end = ending position (NOT included)<br>
+                    • Negative numbers count from end: -1 = last char, -2 = second to last
+                </div>
+                <div class="method-example">
+                    "hello".slice(0, 2) → "he"<br>
+                    "hello".slice(-1) → "o" (last character)<br>
+                    "hello".slice(-2) → "lo" (last 2 characters)<br>
+                    "hello".slice(2) → "llo" (from position 2 to end)
+                </div>
+                <div class="annotation">
+                    <strong>Used in code:</strong> result.slice(0, -1) + result.slice(-1)<br>
+                    Converts last character to lowercase while keeping rest uppercase
+                </div>
+            </div>
+
+            <div class="method-def">
+                <h4>.length - Get String Length</h4>
+                <div class="method-syntax">
+                    string.length
+                </div>
+                <div class="annotation">
+                    <strong>Purpose:</strong> Returns the number of characters (NOT a function, it's a property)
+                </div>
+                <div class="method-example">
+                    "hello".length → 5<br>
+                    "a".length → 1<br>
+                    "".length → 0
+                </div>
+                <div class="annotation">
+                    <strong>Used in code:</strong> plaintext.length % 2 !== 0<br>
+                    Checks if text length is odd (for Hill Cipher pair processing)
+                </div>
+            </div>
+
+            <div class="method-def">
+                <h4>match() - Check if String Matches Pattern</h4>
+                <div class="method-syntax">
+                    string.match(/pattern/flags)
+                </div>
+                <div class="annotation">
+                    <strong>Purpose:</strong> Checks if string matches a regular expression<br>
+                    /[a-z]/i means: letters a-z, i = case-insensitive
+                </div>
+                <div class="method-example">
+                    "A".match(/[a-z]/i) → matches<br>
+                    "5".match(/[a-z]/i) → null (doesn't match)<br>
+                    "!".match(/[a-z]/i) → null
+                </div>
+                <div class="annotation">
+                    <strong>Used in code:</strong> if (char.match(/[a-z]/i))<br>
+                    Only encrypt letters, leave numbers and special chars unchanged
+                </div>
+            </div>
+
+            <div class="method-def">
+                <h4>=== Strict Equality</h4>
+                <div class="method-syntax">
+                    value1 === value2
+                </div>
+                <div class="annotation">
+                    <strong>Purpose:</strong> Checks if two values are exactly equal (same value AND same type)
+                </div>
+                <div class="method-example">
+                    5 === 5 → true<br>
+                    "5" === 5 → false (different types)<br>
+                    "caesar" === "caesar" → true
+                </div>
+                <div class="annotation">
+                    <strong>Used in code:</strong> cipher === "caesar"<br>
+                    Checks if selected cipher is Caesar type
+                </div>
+            </div>
+
+            <div class="method-def">
+                <h4>% Modulo - Get Remainder</h4>
+                <div class="method-syntax">
+                    number1 % number2
+                </div>
+                <div class="annotation">
+                    <strong>Purpose:</strong> Returns the remainder after division
+                </div>
+                <div class="method-example">
+                    10 % 3 → 1<br>
+                    28 % 26 → 2<br>
+                    5 % 2 → 1 (5 is odd)<br>
+                    4 % 2 → 0 (4 is even)
+                </div>
+                <div class="annotation">
+                    <strong>Used in code:</strong><br>
+                    • (charCode + key + 260) % 26 → wraps to 0-25<br>
+                    • length % 2 !== 0 → checks if odd
+                </div>
+            </div>
+
+            <div class="method-def">
+                <h4>? : Ternary Operator</h4>
+                <div class="method-syntax">
+                    condition ? valueIfTrue : valueIfFalse
+                </div>
+                <div class="annotation">
+                    <strong>Purpose:</strong> Quick if/else in one line
+                </div>
+                <div class="method-example">
+                    operation === "encrypt" ? "Encrypted" : "Decrypted"<br>
+                    isLower ? "lowercase" : "uppercase"
+                </div>
+                <div class="annotation">
+                    <strong>Used in code:</strong> const key = operation === "encrypt" ? shift : -shift;<br>
+                    If encrypting, use +3. If decrypting, use -3.
+                </div>
+            </div>
+        </div>
+
+        <!-- CAESAR DETAILED SECTION -->
+        <div id="caesar-detailed" class="content">
+            <h2>🔐 Caesar Cipher - Line by Line</h2>
+
+            <div class="flow-step">
+                <div class="step-title">
+                    <span class="step-number">1</span>
+                    FUNCTION DEFINITION
+                </div>
+                <div class="code-block">
+                    <div class="code-line">
+                        <span class="line-number">1</span>
+                        <span class="line-code">function caesarProcess(text, shift, operation) {</span>
+                    </div>
+                </div>
+                <div class="annotation">
+                    <strong>Parameters passed in:</strong><br>
+                    • text = "hello" (what user typed)<br>
+                    • shift = 3 (shift each letter by 3 positions)<br>
+                    • operation = "encrypt" or "decrypt"
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-title">
+                    <span class="step-number">2</span>
+                    DETERMINE SHIFT DIRECTION
+                </div>
+                <div class="code-block">
+                    <div class="code-line">
+                        <span class="line-number">2</span>
+                        <span class="line-code">const key = operation === "encrypt" ? shift : -shift;</span>
+                    </div>
+                </div>
+                <div class="annotation">
+                    <strong>Using Ternary Operator:</strong><br>
+                    • If operation is "encrypt": key = 3 (shift forward)<br>
+                    • If operation is "decrypt": key = -3 (shift backward)<br><br>
+                    Why? If we encrypted +3, we decrypt by going back -3
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-title">
+                    <span class="step-number">3</span>
+                    CREATE RESULT VARIABLE
+                </div>
+                <div class="code-block">
+                    <div class="code-line">
+                        <span class="line-number">3</span>
+                        <span class="line-code">let result = "";</span>
+                    </div>
+                </div>
+                <div class="annotation">
+                    <strong>Empty string to store encrypted text as we process each character</strong>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-title">
+                    <span class="step-number">4</span>
+                    LOOP THROUGH EACH CHARACTER
+                </div>
+                <div class="code-block">
+                    <div class="code-line">
+                        <span class="line-number">4</span>
+                        <span class="line-code">for (let char of text) {</span>
+                    </div>
+                </div>
+                <div class="annotation">
+                    <strong>For "hello", loop runs 5 times:</strong><br>
+                    Iteration 1: char = "h"<br>
+                    Iteration 2: char = "e"<br>
+                    Iteration 3: char = "l"<br>
+                    Iteration 4: char = "l"<br>
+                    Iteration 5: char = "o"
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-title">
+                    <span class="step-number">5</span>
+                    CHECK IF CHARACTER IS A LETTER
+                </div>
+                <div class="code-block">
+                    <div class="code-line">
+                        <span class="line-number">5</span>
+                        <span class="line-code">if (char.match(/[a-z]/i)) {</span>
+                    </div>
+                </div>
+                <div class="annotation">
+                    <strong>Is this character a letter?</strong><br>
+                    /[a-z]/i matches any letter (a-z or A-Z)<br>
+                    For "hello": YES, all 5 characters are letters
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-title">
+                    <span class="step-number">6</span>
+                    REMEMBER IF LOWERCASE
+                </div>
+                <div class="code-block">
+                    <div class="code-line">
+                        <span class="line-number">6</span>
+                        <span class="line-code">const isLower = char === char.toLowerCase();</span>
+                    </div>
+                </div>
+                <div class="annotation">
+                    <strong>Is the character lowercase?</strong><br>
+                    "h" === "h".toLowerCase() → "h" === "h" → TRUE<br>
+                    "H" === "H".toLowerCase() → "H" === "h" → FALSE<br><br>
+                    For "hello": isLower = TRUE for all characters
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-title">
+                    <span class="step-number">7</span>
+                    CONVERT LETTER TO NUMBER (0-25)
+                </div>
+                <div class="code-block">
+                    <div class="code-line">
+                        <span class="line-number">7</span>
+                        <span class="line-code">let charCode = char.toUpperCase().charCodeAt(0) - 65;</span>
+                    </div>
+                </div>
+                <div class="annotation">
+                    <strong>Step by step for "h":</strong><br>
+                    "h".toUpperCase() = "H"<br>
+                    .charCodeAt(0) = 72 (ASCII code for 'H')<br>
+                    - 65 = 7 (H is 7th letter, 0-indexed)<br><br>
+                    <strong>For all of "hello":</strong><br>
+                    h → 7, e → 4, l → 11, l → 11, o → 14
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-title">
+                    <span class="step-number">8</span>
+                    APPLY SHIFT AND WRAP
+                </div>
+                <div class="code-block">
+                    <div class="code-line">
+                        <span class="line-number">8</span>
+                        <span class="line-code">charCode = (charCode + key + 26 * 10) % 26;</span>
+                    </div>
+                </div>
+                <div class="annotation">
+                    <strong>The formula breaks down:</strong><br>
+                    • charCode + key = shifted position<br>
+                    • + 260 = prevents negative numbers when decrypting<br>
+                    • % 26 = wraps result to 0-25 range<br><br>
+                    <strong>For "hello" (encrypt, key=3):</strong><br>
+                    h: (7+3+260)%26=10 → K<br>
+                    e: (4+3+260)%26=7 → H<br>
+                    l: (11+3+260)%26=14 → O<br>
+                    l: (11+3+260)%26=14 → O<br>
+                    o: (14+3+260)%26=17 → R<br><br>
+                    Result so far: KHOOR ✓
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-title">
+                    <span class="step-number">9</span>
+                    CONVERT NUMBER BACK TO CHARACTER
+                </div>
+                <div class="code-block">
+                    <div class="code-line">
+                        <span class="line-number">9</span>
+                        <span class="line-code">result += String.fromCharCode(charCode + 65);</span>
+                    </div>
+                </div>
+                <div class="annotation">
+                    <strong>Step by step for first iteration:</strong><br>
+                    charCode = 10<br>
+                    + 65 = 75<br>
+                    String.fromCharCode(75) = "K"<br>
+                    result += "K" → result = "K"<br><br>
+                    After all 5 iterations: result = "KHOOR"
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-title">
+                    <span class="step-number">10</span>
+                    HANDLE LOWERCASE CONVERSION
+                </div>
+                <div class="code-block">
+                    <div class="code-line">
+                        <span class="line-number">10</span>
+                        <span class="line-code">if (isLower) result = result.slice(0, -1) + result.slice(-1).toLowerCase();</span>
+                    </div>
+                </div>
+                <div class="annotation">
+                    <strong>Convert last character to lowercase:</strong><br>
+                    result.slice(0, -1) = all except last: "KHOO"<br>
+                    result.slice(-1) = last character: "R"<br>
+                    .toLowerCase() = "r"<br>
+                    "KHOO" + "r" = "KHOOr"<br><br>
+                    This happens for EACH character that was originally lowercase!<br>
+                    Final result: "khoor"
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="step-title">
+                    <span class="step-number">11</span>
+                    HANDLE NON-LETTER CHARACTERS
+                </div>
+                <div class="code-block">
+                    <div class="code-line">
+                        <span class="line-number">11</span>
+                        <span class="line-code">} else {</span>
+                    </div>
+                    <div class="code-line">
+                        <span class="line-number">12</span>
+                        <span class="line-code">&nbsp;&nbsp;&nbsp;&nbsp;result += char;</span>
+                    </div>
+                    <div class="code-line">
+                        <span class="line-number">13</span>
+                        <span class="line-code">}</span>
+                    </div>
+                </div>
+                <div class="annotation">
+                    <strong>If character is NOT a letter (number or special char):</strong><br>
+                    Just add it to result unchanged<br><br>
+                    Example: "hello5!" →<br>
+                    "khoor5!" (the 5 and ! are left as-is)
+                </div>
+            </div>
+
+            <div class="flow-step highlight">
+                <div class="step-title">
+                    <span class="step-number">12</span>
+                    RETURN THE RESULT
+                </div>
+                <div class="code-block">
+                    <div class="code-line">
+                        <span class="line-number">14</span>
+                        <span class="line-code">return `${operation === "encrypt" ? "Encrypted" : "Decrypted"}: ${result}`;</span>
+                    </div>
+                </div>
+                <div class="annotation">
+                    <strong>Final output formatting:</strong><br>
+                    If encrypting: "Encrypted: khoor"<br>
+                    If decrypting: "Decrypted: hello"<br><br>
+                    This formatted string is returned to processText() and displayed on the page!
+                </div>
+            </div>
+
+            <h3>🎯 Complete Caesar Cipher Example</h3>
+            <div class="success">
+                <strong>Input:</strong> "hello" (encrypt with shift 3)<br><br>
+                <strong>Step by step:</strong><br>
+                1. key = 3<br>
+                2. result = ""<br>
+                3. Loop through each character:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;• h → 7 → (7+3+260)%26 = 10 → K → khoo r<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;• e → 4 → (4+3+260)%26 = 7 → H → khho r<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;• l → 11 → (11+3+260)%26 = 14 → O → khoo r<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;• l → 11 → (11+3+260)%26 = 14 → O → khoo r<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;• o → 14 → (14+3+260)%26 = 17 → R → khoor<br><br>
+                <strong>Output:</strong> "Encrypted: khoor"
+            </div>
+        </div>
+
+        <footer>
+            <p>💡 Study this guide to understand how encryption works!</p>
+        </footer>
+
+            <!-- HILL CIPHER DETAILED SECTION -->
+            <div id="hill-detailed" class="content">
+                <h2>🔐 Hill Cipher - Line by Line</h2>
+
+                <div class="flow-step">
+                    <div class="step-title">
+                        <span class="step-number">1</span>
+                        ENCRYPTION FUNCTION DEFINITION
+                    </div>
+                    <div class="code-block">
+                        <div class="code-line">
+                            <span class="line-number">1</span>
+                            <span class="line-code">function hillEncrypt(text, key) {</span>
+                        </div>
+                    </div>
+                    <div class="annotation">
+                        <strong>Parameters:</strong><br>
+                        • text = "hi" (plaintext)<br>
+                        • key = [[2,1], [5,1]] (2×2 matrix)
+                    </div>
+                </div>
+
+                <div class="flow-step">
+                    <div class="step-title">
+                        <span class="step-number">2</span>
+                        CONVERT TO UPPERCASE
+                    </div>
+                    <div class="code-block">
+                        <div class="code-line">
+                            <span class="line-number">2</span>
+                            <span class="line-code">let plaintext = text.toUpperCase();</span>
+                        </div>
+                    </div>
+                    <div class="annotation">
+                        <strong>Reason:</strong> Hill Cipher works only with letters A-Z<br>
+                        "hi" → "HI"
+                    </div>
+                </div>
+
+                <div class="flow-step">
+                    <div class="step-title">
+                        <span class="step-number">3</span>
+                        CHECK FOR ODD LENGTH AND PAD
+                    </div>
+                    <div class="code-block">
+                        <div class="code-line">
+                            <span class="line-number">3</span>
+                            <span class="line-code">if (plaintext.length % 2 !== 0) {</span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-number">4</span>
+                            <span class="line-code">&nbsp;&nbsp;&nbsp;&nbsp;plaintext += "X";</span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-number">5</span>
+                            <span class="line-code">}</span>
+                        </div>
+                    </div>
+                    <div class="annotation">
+                        <strong>Why?</strong> Hill Cipher encrypts pairs of letters (2×2 matrix)<br>
+                        • If text length is odd, add "X" to make it even<br>
+                        • "HI" → length 2 (even) → stays "HI"<br>
+                        • "HELLO" → length 5 (odd) → becomes "HELLOX"
+                    </div>
+                </div>
+
+                <div class="flow-step">
+                    <div class="step-title">
+                        <span class="step-number">4</span>
+                        CREATE RESULT VARIABLE
+                    </div>
+                    <div class="code-block">
+                        <div class="code-line">
+                            <span class="line-number">6</span>
+                            <span class="line-code">let result = "";</span>
+                        </div>
+                    </div>
+                    <div class="annotation">
+                        <strong>Empty string to store encrypted text</strong>
+                    </div>
+                </div>
+
+                <div class="flow-step">
+                    <div class="step-title">
+                        <span class="step-number">5</span>
+                        LOOP THROUGH PAIRS OF LETTERS
+                    </div>
+                    <div class="code-block">
+                        <div class="code-line">
+                            <span class="line-number">7</span>
+                            <span class="line-code">for (let i = 0; i < plaintext.length; i += 2) {</span>
+                        </div>
+                    </div>
+                    <div class="annotation">
+                        <strong>For "HI":</strong><br>
+                        • Loop runs 1 time (length 2)<br>
+                        • i = 0: process "HI" (chars at positions 0 and 1)<br><br>
+                        <strong>For "HELLO" (becomes "HELLOX"):</strong><br>
+                        • Loop runs 3 times (length 6)<br>
+                        • i = 0: process "HE"<br>
+                        • i = 2: process "LL"<br>
+                        • i = 4: process "OX"
+                    </div>
+                </div>
+
+                <div class="flow-step">
+                    <div class="step-title">
+                        <span class="step-number">6</span>
+                        CONVERT LETTERS TO NUMBERS
+                    </div>
+                    <div class="code-block">
+                        <div class="code-line">
+                            <span class="line-number">8</span>
+                            <span class="line-code">let p1 = plaintext.charCodeAt(i) - 65;</span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-number">9</span>
+                            <span class="line-code">let p2 = plaintext.charCodeAt(i + 1) - 65;</span>
+                        </div>
+                    </div>
+                    <div class="annotation">
+                        <strong>For "HI":</strong><br>
+                        • H.charCodeAt(0) = 72 → 72 - 65 = 7 (p1 = 7)<br>
+                        • I.charCodeAt(0) = 73 → 73 - 65 = 8 (p2 = 8)<br><br>
+                        <strong>Matrix notation:</strong><br>
+                        P = [[7],<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[8]]
+                    </div>
+                </div>
+
+                <div class="flow-step">
+                    <div class="step-title">
+                        <span class="step-number">7</span>
+                        MATRIX MULTIPLICATION (THE CORE!)
+                    </div>
+                    <div class="code-block">
+                        <div class="code-line">
+                            <span class="line-number">10</span>
+                            <span class="line-code">let c1 = (key[0][0] * p1 + key[0][1] * p2) % 26;</span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-number">11</span>
+                            <span class="line-code">let c2 = (key[1][0] * p1 + key[1][1] * p2) % 26;</span>
+                        </div>
+                    </div>
+                    <div class="annotation">
+                        <strong>Matrix multiplication formula:</strong><br>
+                        | 2  1 |   | 7 |<br>
+                        | 5  1 | × | 8 |<br><br>
+                        <strong>Line 10 (first row):</strong><br>
+                        c1 = (2×7 + 1×8) % 26 = (14 + 8) % 26 = 22 % 26 = 22 → W<br><br>
+                        <strong>Line 11 (second row):</strong><br>
+                        c2 = (5×7 + 1×8) % 26 = (35 + 8) % 26 = 43 % 26 = 17 → R<br><br>
+                        <strong>Result: "HI" → "WR" ✓</strong>
+                    </div>
+                </div>
+
+                <div class="flow-step">
+                    <div class="step-title">
+                        <span class="step-number">8</span>
+                        CONVERT NUMBERS BACK TO LETTERS
+                    </div>
+                    <div class="code-block">
+                        <div class="code-line">
+                            <span class="line-number">12</span>
+                            <span class="line-code">result += String.fromCharCode(c1 + 65);</span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-number\">13</span>
+                            <span class="line-code">result += String.fromCharCode(c2 + 65);</span>
+                        </div>
+                    </div>
+                    <div class="annotation">
+                        <strong>Step 12:</strong><br>
+                        c1 = 22 → 22 + 65 = 87 → String.fromCharCode(87) = "W"<br><br>
+                        <strong>Step 13:</strong><br>
+                        c2 = 17 → 17 + 65 = 82 → String.fromCharCode(82) = "R"<br><br>
+                        result = "WR"
+                    </div>
+                </div>
+
+                <div class="flow-step highlight">
+                    <div class="step-title">
+                        <span class="step-number">9</span>
+                        RETURN ENCRYPTED TEXT
+                    </div>
+                    <div class="code-block">
+                        <div class="code-line">
+                            <span class="line-number">14</span>
+                            <span class="line-code">return `Encrypted: ${result}`;</span>
+                        </div>
+                    </div>
+                    <div class="annotation">
+                        <strong>Returns:</strong> "Encrypted: WR"
+                    </div>
+                </div>
+
+                <h3>🔓 Hill Cipher Decryption (Complex!)</h3>
+                <div class="annotation">
+                    To decrypt, we need the INVERSE of the key matrix. The process involves:
+                </div>
+
+                <div class="flow-step">
+                    <div class="step-title">
+                        <span class="step-number">10</span>
+                        CALCULATE DETERMINANT
+                    </div>
+                    <div class="code-block">
+                        <div class="code-line">
+                            <span class="line-number">1</span>
+                            <span class="line-code">let det = (key[0][0] * key[1][1]) - (key[0][1] * key[1][0]);</span>
+                        </div>
+                    </div>
+                    <div class="annotation">
+                        <strong>For key [[2,1], [5,1]]:</strong><br>
+                        det = (2×1) - (1×5) = 2 - 5 = -3<br>
+                        In modulo 26: -3 ≡ 23 (mod 26)
+                    </div>
+                </div>
+
+                <div class="flow-step">
+                    <div class="step-title">
+                        <span class="step-number">11</span>
+                        FIND MODULAR INVERSE OF DETERMINANT
+                    </div>
+                    <div class="code-block">
+                        <div class="code-line">
+                            <span class="line-number">2</span>
+                            <span class="line-code">let invDet = 0;</span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-number">3</span>
+                            <span class="line-code">for (let i = 1; i < 26; i++) {</span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-number">4</span>
+                            <span class="line-code">&nbsp;&nbsp;&nbsp;&nbsp;if ((det * i) % 26 === 1) {</span>
+                        </div>
+                    </div>
+                    <div class="annotation">
+                        <strong>Find number where (det × i) % 26 = 1</strong><br>
+                        (23 × i) % 26 = 1<br>
+                        Testing: 23×17 = 391 = 15×26 + 1 ✓<br>
+                        So invDet = 17
+                    </div>
+                </div>
+
+                <h3>🎯 Complete Hill Cipher Example</h3>
+                <div class="success">
+                    <strong>Encryption of "HI":</strong><br><br>
+                    Input: "HI"<br>
+                    Key: [[2,1], [5,1]]<br><br>
+                    1. Convert: H=7, I=8<br>
+                    2. Matrix multiply:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;• c1 = (2×7 + 1×8) % 26 = 22 (W)<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;• c2 = (5×7 + 1×8) % 26 = 17 (R)<br>
+                    3. Output: "WR"<br><br>
+                    <strong>Decryption of "WR":</strong><br><br>
+                    Input: "WR"<br>
+                    1. Calculate inverse key using matrix math<br>
+                    2. Convert: W=22, R=17<br>
+                    3. Matrix multiply with inverse<br>
+                    4. Output: "HI" (recovered!) ✓
+                </div>
+            </div>
+
+    </div>
+
+    <script>
+        function showSection(sectionId) {
+            const contents = document.querySelectorAll('.content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            const buttons = document.querySelectorAll('nav button');
+            buttons.forEach(button => button.classList.remove('active'));
+            
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
