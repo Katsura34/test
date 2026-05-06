@@ -114,11 +114,9 @@
 
             for (let char of text) {
                 if (char.match(/[a-z]/i)) {
-                    const isLower = char === char.toLowerCase();
                     let charCode = char.toUpperCase().charCodeAt(0) - 65;
                     charCode = (charCode + key + 26 * 10) % 26;
-                    result += String.fromCharCode(charCode + 65) + (isLower ? "" : "");
-                    if (isLower) result = result.slice(0, -1) + result.slice(-1).toLowerCase();
+                    result += String.fromCharCode(charCode + 65);
                 } else {
                     result += char;
                 }
