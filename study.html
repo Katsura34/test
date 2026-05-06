@@ -574,7 +574,6 @@
                 </div>
                 <div class="method-example">
                     operation === "encrypt" ? "Encrypted" : "Decrypted"<br>
-                    isLower ? "lowercase" : "uppercase"
                 </div>
                 <div class="annotation">
                     <strong>Used in code:</strong> const key = operation === "encrypt" ? shift : -shift;<br>
@@ -590,7 +589,7 @@
             <div class="flow-step">
                 <div class="step-title">
                     <span class="step-number">1</span>
-                    FUNCTION DEFINITION
+                    START WITH THE FUNCTION
                 </div>
                 <div class="code-block">
                     <div class="code-line">
@@ -599,17 +598,15 @@
                     </div>
                 </div>
                 <div class="annotation">
-                    <strong>Parameters passed in:</strong><br>
-                    • text = "hello" (what user typed)<br>
-                    • shift = 3 (shift each letter by 3 positions)<br>
-                    • operation = "encrypt" or "decrypt"
+                    <strong>Definition:</strong> This function starts the Caesar cipher process.<br>
+                    It receives the text, the shift number, and whether we want to encrypt or decrypt.
                 </div>
             </div>
 
             <div class="flow-step">
                 <div class="step-title">
                     <span class="step-number">2</span>
-                    DETERMINE SHIFT DIRECTION
+                    CHECK THE OPERATION
                 </div>
                 <div class="code-block">
                     <div class="code-line">
@@ -618,17 +615,17 @@
                     </div>
                 </div>
                 <div class="annotation">
-                    <strong>Using Ternary Operator:</strong><br>
-                    • If operation is "encrypt": key = 3 (shift forward)<br>
-                    • If operation is "decrypt": key = -3 (shift backward)<br><br>
-                    Why? If we encrypted +3, we decrypt by going back -3
+                    <strong>What this means:</strong><br>
+                    • If operation is encrypt, key becomes 3<br>
+                    • If operation is decrypt, key becomes -3<br><br>
+                    This is done with a ternary operator: condition ? valueIfTrue : valueIfFalse
                 </div>
             </div>
 
             <div class="flow-step">
                 <div class="step-title">
                     <span class="step-number">3</span>
-                    CREATE RESULT VARIABLE
+                    CREATE THE RESULT STRING
                 </div>
                 <div class="code-block">
                     <div class="code-line">
@@ -637,14 +634,14 @@
                     </div>
                 </div>
                 <div class="annotation">
-                    <strong>Empty string to store encrypted text as we process each character</strong>
+                    <strong>Definition:</strong> Creates an empty string to store the encrypted or decrypted output.
                 </div>
             </div>
 
             <div class="flow-step">
                 <div class="step-title">
                     <span class="step-number">4</span>
-                    LOOP THROUGH EACH CHARACTER
+                    LOOP THROUGH EVERY CHARACTER
                 </div>
                 <div class="code-block">
                     <div class="code-line">
@@ -653,19 +650,15 @@
                     </div>
                 </div>
                 <div class="annotation">
-                    <strong>For "hello", loop runs 5 times:</strong><br>
-                    Iteration 1: char = "h"<br>
-                    Iteration 2: char = "e"<br>
-                    Iteration 3: char = "l"<br>
-                    Iteration 4: char = "l"<br>
-                    Iteration 5: char = "o"
+                    <strong>Meaning:</strong> This loop goes through the text one character at a time.<br>
+                    If the text is "hello", the loop looks at h, then e, then l, then l, then o.
                 </div>
             </div>
 
             <div class="flow-step">
                 <div class="step-title">
                     <span class="step-number">5</span>
-                    CHECK IF CHARACTER IS A LETTER
+                    CHECK IF THE CHARACTER IS A LETTER
                 </div>
                 <div class="code-block">
                     <div class="code-line">
@@ -674,186 +667,121 @@
                     </div>
                 </div>
                 <div class="annotation">
-                    <strong>Is this character a letter?</strong><br>
-                    /[a-z]/i matches any letter (a-z or A-Z)<br>
-                    For "hello": YES, all 5 characters are letters
+                    <strong>Meaning:</strong> Checks whether the character is a letter.<br>
+                    The /i makes it case-insensitive, so it matches both uppercase and lowercase letters.<br>
+                    If it is a number or space, the code skips to the else part.
                 </div>
             </div>
 
             <div class="flow-step">
                 <div class="step-title">
                     <span class="step-number">6</span>
-                    REMEMBER IF LOWERCASE
+                    CONVERT THE LETTER TO A NUMBER
                 </div>
                 <div class="code-block">
                     <div class="code-line">
                         <span class="line-number">6</span>
-                        <span class="line-code">const isLower = char === char.toLowerCase();</span>
+                        <span class="line-code">let charCode = char.toUpperCase().charCodeAt(0) - 65;</span>
                     </div>
                 </div>
                 <div class="annotation">
-                    <strong>Is the character lowercase?</strong><br>
-                    "h" === "h".toLowerCase() → "h" === "h" → TRUE<br>
-                    "H" === "H".toLowerCase() → "H" === "h" → FALSE<br><br>
-                    For "hello": isLower = TRUE for all characters
+                    <strong>Meaning:</strong> Converts A to 0, B to 1, C to 2, and so on.<br>
+                    It first forces the letter to uppercase, gets its ASCII value, and subtracts 65.
                 </div>
             </div>
 
             <div class="flow-step">
                 <div class="step-title">
                     <span class="step-number">7</span>
-                    CONVERT LETTER TO NUMBER (0-25)
+                    SHIFT THE NUMBER AND WRAP AROUND
                 </div>
                 <div class="code-block">
                     <div class="code-line">
                         <span class="line-number">7</span>
-                        <span class="line-code">let charCode = char.toUpperCase().charCodeAt(0) - 65;</span>
+                        <span class="line-code">charCode = (charCode + key + 26 * 10) % 26;</span>
                     </div>
                 </div>
                 <div class="annotation">
-                    <strong>Step by step for "h":</strong><br>
-                    "h".toUpperCase() = "H"<br>
-                    .charCodeAt(0) = 72 (ASCII code for 'H')<br>
-                    - 65 = 7 (H is 7th letter, 0-indexed)<br><br>
-                    <strong>For all of "hello":</strong><br>
-                    h → 7, e → 4, l → 11, l → 11, o → 14
+                    <strong>Meaning:</strong> Adds the key to the letter number.<br>
+                    The % 26 makes the result wrap back to A after Z.<br>
+                    The 26 * 10 part is a safety trick so negative values still work.
                 </div>
             </div>
 
             <div class="flow-step">
                 <div class="step-title">
                     <span class="step-number">8</span>
-                    APPLY SHIFT AND WRAP
+                    CONVERT THE NUMBER BACK TO A LETTER
                 </div>
                 <div class="code-block">
                     <div class="code-line">
                         <span class="line-number">8</span>
-                        <span class="line-code">charCode = (charCode + key + 26 * 10) % 26;</span>
+                        <span class="line-code">result += String.fromCharCode(charCode + 65);</span>
                     </div>
                 </div>
                 <div class="annotation">
-                    <strong>The formula breaks down:</strong><br>
-                    • charCode + key = shifted position<br>
-                    • + 260 = prevents negative numbers when decrypting<br>
-                    • % 26 = wraps result to 0-25 range<br><br>
-                    <strong>For "hello" (encrypt, key=3):</strong><br>
-                    h: (7+3+260)%26=10 → K<br>
-                    e: (4+3+260)%26=7 → H<br>
-                    l: (11+3+260)%26=14 → O<br>
-                    l: (11+3+260)%26=14 → O<br>
-                    o: (14+3+260)%26=17 → R<br><br>
-                    Result so far: KHOOR ✓
+                    <strong>Meaning:</strong> Turns the number back into a letter.<br>
+                    String.fromCharCode() converts the ASCII number into the corresponding character.
                 </div>
             </div>
 
             <div class="flow-step">
                 <div class="step-title">
                     <span class="step-number">9</span>
-                    CONVERT NUMBER BACK TO CHARACTER
+                    HANDLE NON-LETTER CHARACTERS
                 </div>
                 <div class="code-block">
                     <div class="code-line">
                         <span class="line-number">9</span>
-                        <span class="line-code">result += String.fromCharCode(charCode + 65);</span>
+                        <span class="line-code">} else {</span>
+                    </div>
+                    <div class="code-line">
+                        <span class="line-number">10</span>
+                        <span class="line-code">&nbsp;&nbsp;&nbsp;&nbsp;result += char;</span>
+                    </div>
+                    <div class="code-line">
+                        <span class="line-number">11</span>
+                        <span class="line-code">}</span>
                     </div>
                 </div>
                 <div class="annotation">
-                    <strong>Step by step for first iteration:</strong><br>
-                    charCode = 10<br>
-                    + 65 = 75<br>
-                    String.fromCharCode(75) = "K"<br>
-                    result += "K" → result = "K"<br><br>
-                    After all 5 iterations: result = "KHOOR"
+                    <strong>Meaning:</strong> If the character is not a letter, it is added to the result without changing it.<br>
+                    This keeps spaces, numbers, and symbols exactly the same.<br>
+                    Since lowercase tracking was removed, all letters come out uppercase.
                 </div>
             </div>
 
             <div class="flow-step">
                 <div class="step-title">
                     <span class="step-number">10</span>
-                    HANDLE LOWERCASE CONVERSION
+                    RETURN THE FINAL TEXT
                 </div>
                 <div class="code-block">
-                    <div class="code-line">
-                        <span class="line-number">10</span>
-                        <span class="line-code">if (isLower) result = result.slice(0, -1) + result.slice(-1).toLowerCase();</span>
-                    </div>
-                </div>
-                <div class="annotation">
-                    <strong>Convert last character to lowercase:</strong><br>
-                    result.slice(0, -1) = all except last: "KHOO"<br>
-                    result.slice(-1) = last character: "R"<br>
-                    .toLowerCase() = "r"<br>
-                    "KHOO" + "r" = "KHOOr"<br><br>
-                    This happens for EACH character that was originally lowercase!<br>
-                    Final result: "khoor"
-                </div>
-            </div>
-
-            <div class="flow-step">
-                <div class="step-title">
-                    <span class="step-number">11</span>
-                    HANDLE NON-LETTER CHARACTERS
-                </div>
-                <div class="code-block">
-                    <div class="code-line">
-                        <span class="line-number">11</span>
-                        <span class="line-code">} else {</span>
-                    </div>
                     <div class="code-line">
                         <span class="line-number">12</span>
-                        <span class="line-code">&nbsp;&nbsp;&nbsp;&nbsp;result += char;</span>
-                    </div>
-                    <div class="code-line">
-                        <span class="line-number">13</span>
-                        <span class="line-code">}</span>
-                    </div>
-                </div>
-                <div class="annotation">
-                    <strong>If character is NOT a letter (number or special char):</strong><br>
-                    Just add it to result unchanged<br><br>
-                    Example: "hello5!" →<br>
-                    "khoor5!" (the 5 and ! are left as-is)
-                </div>
-            </div>
-
-            <div class="flow-step highlight">
-                <div class="step-title">
-                    <span class="step-number">12</span>
-                    RETURN THE RESULT
-                </div>
-                <div class="code-block">
-                    <div class="code-line">
-                        <span class="line-number">14</span>
                         <span class="line-code">return `${operation === "encrypt" ? "Encrypted" : "Decrypted"}: ${result}`;</span>
                     </div>
                 </div>
                 <div class="annotation">
-                    <strong>Final output formatting:</strong><br>
-                    If encrypting: "Encrypted: khoor"<br>
-                    If decrypting: "Decrypted: hello"<br><br>
-                    This formatted string is returned to processText() and displayed on the page!
+                    <strong>Meaning:</strong> Returns the result with a label in front of it.<br>
+                    If encrypting, it returns "Encrypted: ...".<br>
+                    If decrypting, it returns "Decrypted: ...".
                 </div>
             </div>
 
             <h3>🎯 Complete Caesar Cipher Example</h3>
             <div class="success">
-                <strong>Input:</strong> "hello" (encrypt with shift 3)<br><br>
-                <strong>Step by step:</strong><br>
-                1. key = 3<br>
-                2. result = ""<br>
-                3. Loop through each character:<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;• h → 7 → (7+3+260)%26 = 10 → K → khoo r<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;• e → 4 → (4+3+260)%26 = 7 → H → khho r<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;• l → 11 → (11+3+260)%26 = 14 → O → khoo r<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;• l → 11 → (11+3+260)%26 = 14 → O → khoo r<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;• o → 14 → (14+3+260)%26 = 17 → R → khoor<br><br>
-                <strong>Output:</strong> "Encrypted: khoor"
+                <strong>Input:</strong> "hello"<br><br>
+                <strong>How it runs:</strong><br>
+                • The function sees each letter one by one<br>
+                • It checks that each one is a letter<br>
+                • It changes each letter into a number<br>
+                • It adds the shift key of 3<br>
+                • It turns the number back into a letter<br>
+                • It leaves non-letter characters unchanged<br><br>
+                <strong>Output:</strong> "Encrypted: KHOOR"
             </div>
         </div>
-
-        <footer>
-            <p>💡 Study this guide to understand how encryption works!</p>
-        </footer>
 
             <!-- HILL CIPHER DETAILED SECTION -->
             <div id="hill-detailed" class="content">
@@ -884,7 +812,7 @@
                     </div>
                     <div class="code-block">
                         <div class="code-line">
-                            <span class="line-number">2</span>
+                                <span class="line-number">2</span>
                             <span class="line-code">let plaintext = text.toUpperCase();</span>
                         </div>
                     </div>
@@ -1023,7 +951,7 @@
                             <span class="line-code">result += String.fromCharCode(c1 + 65);</span>
                         </div>
                         <div class="code-line">
-                            <span class="line-number\">13</span>
+                            <span class="line-number">13</span>
                             <span class="line-code">result += String.fromCharCode(c2 + 65);</span>
                         </div>
                     </div>
@@ -1120,6 +1048,10 @@
                     4. Output: "HI" (recovered!) ✓
                 </div>
             </div>
+
+        <footer>
+            <p>💡 Study this guide to understand how encryption works!</p>
+        </footer>
 
     </div>
 
